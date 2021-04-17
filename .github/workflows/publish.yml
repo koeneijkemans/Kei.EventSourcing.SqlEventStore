@@ -1,0 +1,44 @@
+name: Publish NuGet on release
+
+on:
+  push:
+    branches:
+      - release/*
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore -c Release
+      
+    - name: Test
+      run: dotnet test --no-build --verbosity normal -c Release
+      
+    - name: Get version numer
+      uses: diligencia/semantic-branch-version@1.0
+      id: getversion
+      
+    - name: Create packages
+      run: dotnet pack --no-build -c Release -o . -p:PackageVersion=${{ steps.getversion.outputs.VERSION }}
+      
+    - name: Push packages
+      run: dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_KEY}} --skip-duplicate
+
+    - name: Create a release
+      uses: ncipollo/release-action@v1.7.3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: v${{ steps.getversion.outputs.VERSION }}
+        name: v${{ steps.getversion.outputs.VERSION }}
