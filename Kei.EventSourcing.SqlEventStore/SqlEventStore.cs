@@ -77,6 +77,8 @@ namespace Kei.EventSourcing.SqlEventStore
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
+                connection.Open();
+
                 string query = $"IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='events' AND xtype='U') CREATE TABLE {_tableName} ([Id] UNIQUEIDENTIFIER PRIMARY KEY, [AggregateId] UNIQUEIDENTIFIER, [Order] INT, [Type] VARCHAR(100), [Data] VARCHAR(max))";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
