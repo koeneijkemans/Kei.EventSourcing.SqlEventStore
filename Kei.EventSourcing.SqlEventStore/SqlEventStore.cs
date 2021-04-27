@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using System.Linq;
 
 namespace Kei.EventSourcing.SqlEventStore
 {
@@ -28,14 +29,46 @@ namespace Kei.EventSourcing.SqlEventStore
             {
                 connection.Open();
 
-                string query = $"SELECT * FROM {_tableName} WHERE AggregateId = @aggregateId ORDER BY [Order] ASC";
-                var param = new SqlParameter("aggregateId", SqlDbType.UniqueIdentifier);
-                param.Value = aggregateId;
+                string query = $"SELECT * FROM {_tableName} WHERE [AggregateId] = @aggregateId ORDER BY [Order] ASC";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.Add(param);
+                    command.Parameters.Add(new SqlParameter("aggregateId", aggregateId) { SqlDbType = SqlDbType.UniqueIdentifier });
 
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            SqlEvent sqlEvent = new SqlEvent();
+                            sqlEvent.Id = new Guid(reader["Id"].ToString());
+                            sqlEvent.AggregateId = new Guid(reader["AggregateId"].ToString());
+                            sqlEvent.Order = int.Parse(reader["Order"].ToString());
+                            sqlEvent.EventType = reader["Type"].ToString();
+                            sqlEvent.Data = reader["Data"].ToString();
+
+                            Event @event = ToEvent(sqlEvent);
+                            events.Add(@event);
+                        }
+                    }
+                }
+            }
+
+            return events;
+        }
+
+        public override List<Event> GetAll(params Type[] eventTypes)
+        {
+            List<Event> events = new List<Event>();
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                string types = string.Join(",", eventTypes.Select(e => $"'{e.Name}'"));
+                string query = $"SELECT * FROM {_tableName} WHERE [Type] IN ({types}) ORDER BY [Id], [Order] ASC;";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
                         while (reader.Read())

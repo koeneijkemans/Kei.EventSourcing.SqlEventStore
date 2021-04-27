@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.1.1</Version>
+    <Version>0.2.0</Version>
     <Description>Allows storing events in a SQL databse.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kei.EventSourcing" Version="0.0.1" />
+    <PackageReference Include="Kei.EventSourcing" Version="0.2.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.2" />
   </ItemGroup>
 
