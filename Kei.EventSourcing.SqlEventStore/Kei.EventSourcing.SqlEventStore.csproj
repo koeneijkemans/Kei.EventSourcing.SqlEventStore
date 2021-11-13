@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kei.EventSourcing" Version="0.2.0" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.2" />
+    <PackageReference Include="Kei.EventSourcing" Version="0.3.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="3.0.1" />
   </ItemGroup>
 
 </Project>
